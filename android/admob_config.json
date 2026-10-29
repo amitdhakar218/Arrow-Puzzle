@@ -1,0 +1,16 @@
+{
+  "app_name": "Arrow Puzzle: Tap",
+  "comment": "AdMob Configuration file. You can replace the IDs below with your Google AdMob account IDs when you are ready to monetize.",
+  "admob": {
+    "app_id": "ca-app-pub-3940256099942544~3347511713",
+    "banner_ad_unit_id": "ca-app-pub-3940256099942544/6300978111",
+    "interstitial_ad_unit_id": "ca-app-pub-3940256099942544/1033173712",
+    "rewarded_ad_unit_id": "ca-app-pub-3940256099942544/5224354917",
+    "interstitial_frequency_levels": 3,
+    "reward_hint_count": 3
+  },
+  "instructions": {
+    "hindi": "Apne AdMob account se App ID and Ad Unit IDs copy karke is file me or android/app/src/main/res/values/strings.xml me paste kar dijiye. Fir GitHub Actions automatically nayi APK bana dega!",
+    "english": "Copy your App ID and Ad Unit IDs from your Google AdMob dashboard and paste them into this file and android/app/src/main/res/values/strings.xml. Then trigger the GitHub Actions workflow to get your production APK!"
+  }
+}

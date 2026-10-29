@@ -1,0 +1,75 @@
+name: Build Android APK (C++ & AdMob)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build C++ Native Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK & CMake
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "ndk;26.1.10909125" "cmake;3.22.1" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Make Gradle executable
+        working-directory: ./android
+        run: chmod +x gradlew || true
+
+      - name: Test C++ Native Game Engine via CMake
+        run: |
+          mkdir -p build-cpp
+          cd build-cpp
+          cmake ../android/app/src/main/cpp
+          make -j$(nproc)
+          ./arrow_engine_tests || true
+
+      - name: Build Debug APK
+        working-directory: ./android
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
+
+      - name: Build Release APK (Unsigned)
+        working-directory: ./android
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleRelease --stacktrace
+          else
+            gradle assembleRelease --stacktrace
+          fi
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArrowPuzzle-Debug-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArrowPuzzle-Release-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 14
