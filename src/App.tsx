@@ -61,10 +61,10 @@ export default function App() {
   // AdMob configuration state (can be edited by user in UI)
   const [admobConfig, setAdmobConfig] = useState(() => {
     const defaultConfig = {
-      appId: 'ca-app-pub-3940256099942544~3347511713',
-      bannerId: 'ca-app-pub-3940256099942544/6300978111',
-      interstitialId: 'ca-app-pub-3940256099942544/1033173712',
-      rewardedId: 'ca-app-pub-3940256099942544/5224354917',
+      appId: 'ca-app-pub-4896944310343088~1574563740',
+      bannerId: 'ca-app-pub-4896944310343088/1574563740',
+      interstitialId: 'ca-app-pub-4896944310343088/7766447903',
+      rewardedId: 'ca-app-pub-4896944310343088/7766447903',
     };
     if (typeof window !== 'undefined') {
       try {

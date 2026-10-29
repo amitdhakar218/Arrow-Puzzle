@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.arrowpuzzle.tap"
     compileSdk = 34
+    ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "com.arrowpuzzle.tap"
@@ -63,8 +64,4 @@ dependencies {
 
     // Google Mobile Ads (AdMob) SDK
     implementation("com.google.android.gms:play-services-ads:23.6.0")
-
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

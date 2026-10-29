@@ -7,7 +7,7 @@ interface AdMobBannerProps {
 }
 
 export const AdMobBanner: React.FC<AdMobBannerProps> = ({
-  bannerId = 'ca-app-pub-3940256099942544/6300978111',
+  bannerId = 'ca-app-pub-4896944310343088/1574563740',
   onOpenSettings,
 }) => {
   return (

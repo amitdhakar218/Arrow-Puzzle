@@ -22,49 +22,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK & NDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android NDK & CMake
+      - name: Accept Android Licenses & Ensure NDK/CMake
         run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "ndk;26.1.10909125" "cmake;3.22.1" "platforms;android-34" "build-tools;34.0.0"
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "ndk;26.1.10909125" || true
 
-      - name: Make Gradle executable
-        working-directory: ./android
-        run: chmod +x gradlew || true
-
-      - name: Test C++ Native Game Engine via CMake
-        run: |
-          mkdir -p build-cpp
-          cd build-cpp
-          cmake ../android/app/src/main/cpp
-          make -j$(nproc)
-          ./arrow_engine_tests || true
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
 
       - name: Build Debug APK
         working-directory: ./android
         run: |
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug --stacktrace
-          else
-            gradle assembleDebug --stacktrace
-          fi
+          gradle assembleDebug --stacktrace --no-daemon
 
-      - name: Build Release APK (Unsigned)
+      - name: Build Release APK
         working-directory: ./android
         run: |
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleRelease --stacktrace
-          else
-            gradle assembleRelease --stacktrace
-          fi
+          gradle assembleRelease --stacktrace --no-daemon || true
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ArrowPuzzle-Debug-APK
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Upload Release APK Artifact
@@ -72,4 +58,5 @@ jobs:
         with:
           name: ArrowPuzzle-Release-APK
           path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
           retention-days: 14

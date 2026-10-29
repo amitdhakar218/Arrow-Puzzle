@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Setup Gradle environment
+# Attempts to find gradle binary, or runs gradle if available, or bootstraps wrapper.
+
+set -e
+
+DIRNAME=$(dirname "$0")
+
+# If gradle is installed in PATH, use it directly
+if command -v gradle >/dev/null 2>&1; then
+    exec gradle "$@"
+fi
+
+# Fallback wrapper launcher
+JAR="$DIRNAME/gradle/wrapper/gradle-wrapper.jar"
+
+if [ -f "$JAR" ]; then
+    JAVA_EXE="java"
+    if [ -n "$JAVA_HOME" ]; then
+        JAVA_EXE="$JAVA_HOME/bin/java"
+    fi
+    exec "$JAVA_EXE" -Dorg.gradle.appname=gradlew -classpath "$JAR" org.gradle.wrapper.GradleWrapperMain "$@"
+fi
+
+echo "Warning: gradle-wrapper.jar not found, attempting to invoke gradle..."
+gradle "$@"

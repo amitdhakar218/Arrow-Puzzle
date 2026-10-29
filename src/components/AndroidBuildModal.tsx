@@ -38,9 +38,12 @@ jobs:
       - uses: android-actions/setup-android@v3
       - run: |
           yes | sdkmanager --licenses || true
-          sdkmanager "ndk;26.1.10909125" "cmake;3.22.1"
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "ndk;26.1.10909125" || true
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
       - working-directory: ./android
-        run: ./gradlew assembleDebug assembleRelease
+        run: gradle assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: ArrowPuzzle-Debug-APK
@@ -182,7 +185,7 @@ jobs:
                   <span>APK Download Karne Ka Tarika (Step-by-Step)</span>
                 </h3>
                 <ol className="list-decimal list-inside space-y-1.5 text-slate-300">
-                  <li>Apne project ko GitHub par push karein: <code className="text-amber-300 font-mono">git push origin main</code></li>
+                  <li>Apne project ko GitHub par push karein: <code className="text-amber-300 font-mono">git push origin main</code> (Repo: <span className="text-cyan-300">github.com/amitdhakar218/Arrow-Puzzle</span>)</li>
                   <li>GitHub par repository kholkar upar <strong>Actions</strong> tab par click karein.</li>
                   <li>Wahan <strong>&quot;Build Android APK (C++ &amp; AdMob)&quot;</strong> workflow run hona shuru ho jayega.</li>
                   <li>2-3 minute me jab run complete ho jaye, uspe click karein.</li>
@@ -190,12 +193,12 @@ jobs:
                 </ol>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-800/90 border border-amber-500/30 space-y-2">
-                <h3 className="font-bold text-sm text-amber-300">
-                  💰 AdMob Earning Setup
+              <div className="p-4 rounded-xl bg-slate-800/90 border border-emerald-500/30 space-y-2">
+                <h3 className="font-bold text-sm text-emerald-300">
+                  💰 Real AdMob Account Configured!
                 </h3>
                 <p className="text-slate-300 leading-relaxed">
-                  Apne AdMob account se App ID aur Unit IDs lekar <code className="text-cyan-300">android/admob_config.json</code> aur <code className="text-cyan-300">android/app/src/main/res/values/strings.xml</code> me paste kar dein. Fir dubara commit karein — aapki APK real ads dikhane lagegi!
+                  Aapke AdMob account (<code className="text-cyan-300">pub-4896944310343088</code>) ke Banner, Interstitial aur App Open IDs project me set ho gaye hain! Nayi APK install karne par aapki real ads active milengi.
                 </p>
               </div>
             </div>

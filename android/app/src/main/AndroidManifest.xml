@@ -8,8 +8,6 @@
 
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -17,11 +15,10 @@
         android:theme="@style/Theme.ArrowPuzzleTap"
         tools:targetApi="31">
 
-        <!-- Google AdMob Application ID (Replace with your actual ca-app-pub ID) -->
-        <!-- Test App ID provided below for initial testing -->
+        <!-- Google AdMob Application ID (Configured for pub-4896944310343088) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-4896944310343088~1574563740" />
 
         <activity
             android:name=".MainActivity"
