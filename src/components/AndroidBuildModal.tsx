@@ -35,15 +35,17 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "ndk;26.1.10909125" || true
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          if [ -d "$ANDROID_NDK_HOME" ]; then echo "ndk.dir=$ANDROID_NDK_HOME" >> android/local.properties; fi
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.5'
       - working-directory: ./android
-        run: gradle assembleDebug --stacktrace
+        run: |
+          gradle wrapper --gradle-version 8.5 || true
+          ./gradlew assembleDebug --stacktrace --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: ArrowPuzzle-Debug-APK

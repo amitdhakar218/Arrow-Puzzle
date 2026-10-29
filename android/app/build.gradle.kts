@@ -6,7 +6,6 @@ plugins {
 android {
     namespace = "com.arrowpuzzle.tap"
     compileSdk = 34
-    ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "com.arrowpuzzle.tap"
