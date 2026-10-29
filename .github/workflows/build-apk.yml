@@ -22,17 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configure Android SDK and Accept Licenses
+      - name: Configure Android SDK and NDK
         run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" --install "ndk;25.1.8937393"
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          if [ -d "$ANDROID_NDK_HOME" ]; then
-            echo "ndk.dir=$ANDROID_NDK_HOME" >> android/local.properties
-            echo "Found NDK at: $ANDROID_NDK_HOME"
-          elif [ -d "$ANDROID_NDK" ]; then
-            echo "ndk.dir=$ANDROID_NDK" >> android/local.properties
-            echo "Found NDK at: $ANDROID_NDK"
-          fi
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          echo "ndk.dir=$ANDROID_HOME/ndk/25.1.8937393" >> android/local.properties
 
       - name: Setup Gradle 8.5
         uses: gradle/actions/setup-gradle@v3
