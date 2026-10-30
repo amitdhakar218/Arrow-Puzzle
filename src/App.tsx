@@ -118,6 +118,29 @@ export default function App() {
   const [isMobileFrame, setIsMobileFrame] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted);
 
+  // Detect if running inside Android Native APK WebView
+  const isNativeAndroid = typeof window !== 'undefined' && Boolean((window as unknown as { AndroidNative?: { isNative?: () => boolean } }).AndroidNative?.isNative?.());
+
+  // Check if current board is in a deadlock state (no free arrow or rotator exists)
+  const isDeadlocked = useMemo(() => {
+    if (gameState !== 'playing') return false;
+    const remaining = arrows.filter(a => !a.isCleared && a.type !== 'OBSTACLE').length;
+    if (remaining === 0) return false;
+    const free = findFreeArrow(arrows, currentLevelConfig.gridRows, currentLevelConfig.gridCols);
+    const hasRotator = arrows.some(a => !a.isCleared && a.type === 'ROTATOR');
+    return !free && !hasRotator;
+  }, [arrows, gameState, currentLevelConfig]);
+
+  // Listen for native Android rewarded ad callbacks
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { onNativeRewardGranted?: () => void }).onNativeRewardGranted = () => {
+        setHintsCount(prev => prev + 3);
+        sound.playVictory();
+      };
+    }
+  }, []);
+
   // Sync document body dataset state for ultra-mode & automated inspection
   useEffect(() => {
     document.body.dataset.state = gameState === 'victory' ? 'gameover' : gameState;
@@ -230,9 +253,13 @@ export default function App() {
 
           // Check if AdMob Interstitial should show (every 3 levels)
           if (currentLevelNumber % 3 === 0) {
-            setTimeout(() => {
-              setIsInterstitialOpen(true);
-            }, 600);
+            if (isNativeAndroid) {
+              (window as unknown as { AndroidNative?: { showInterstitialAd?: (lvl: number) => void } }).AndroidNative?.showInterstitialAd?.(currentLevelNumber);
+            } else {
+              setTimeout(() => {
+                setIsInterstitialOpen(true);
+              }, 600);
+            }
           }
         }
       }, 260);
@@ -292,6 +319,43 @@ export default function App() {
   // Reward Ad Claimed
   const handleRewardClaimed = () => {
     setHintsCount(prev => prev + 3);
+  };
+
+  // Watch Reward Ad (Native or Web Simulation)
+  const handleWatchRewardAd = () => {
+    if (isNativeAndroid) {
+      (window as unknown as { AndroidNative?: { showRewardedAd?: () => void } }).AndroidNative?.showRewardedAd?.();
+    } else {
+      setIsRewardAdOpen(true);
+    }
+  };
+
+  // Smart Nudge to unblock player when deadlocked so they never get stuck
+  const handleSmartNudge = () => {
+    const active = arrows.filter(a => !a.isCleared && a.type !== 'OBSTACLE');
+    if (active.length === 0) return;
+
+    // Pick a candidate arrow and rotate it to an open outward direction
+    const outerArrows = active.filter(
+      a =>
+        a.row === 0 ||
+        a.row === currentLevelConfig.gridRows - 1 ||
+        a.col === 0 ||
+        a.col === currentLevelConfig.gridCols - 1
+    );
+    const target = outerArrows.length > 0 ? outerArrows[0] : active[0];
+
+    let outwardDir: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT' = 'UP';
+    if (target.row === 0) outwardDir = 'UP';
+    else if (target.row === currentLevelConfig.gridRows - 1) outwardDir = 'DOWN';
+    else if (target.col === 0) outwardDir = 'LEFT';
+    else outwardDir = 'RIGHT';
+
+    setUndoHistory(prev => [...prev, arrows.map(a => ({ ...a }))]);
+    setArrows(prev =>
+      prev.map(a => (a.id === target.id ? { ...a, direction: outwardDir } : a))
+    );
+    sound.playRotate();
   };
 
   // Next level
@@ -397,11 +461,11 @@ export default function App() {
               onToggleMobileFrame={() => setIsMobileFrame(prev => !prev)}
               onOpenAndroidModal={() => setIsAndroidModalOpen(true)}
               onOpenAdMobSettings={() => setIsAdMobSettingsOpen(true)}
-              onWatchRewardAd={() => setIsRewardAdOpen(true)}
+              onWatchRewardAd={handleWatchRewardAd}
             />
 
             {/* Central Playfield: GameBoard */}
-            <main className="flex-1 w-full flex items-center justify-center p-2 z-10">
+            <main className="relative flex-1 w-full flex items-center justify-center p-2 z-10">
               <GameBoard
                 level={currentLevelConfig}
                 arrows={arrows}
@@ -411,15 +475,36 @@ export default function App() {
                 exitingArrowId={exitingArrowId}
                 collisionBlockerId={collisionBlockerId}
               />
+
+              {/* Deadlock Helper Bar - Appears if all paths are blocked so player is never stuck */}
+              {isDeadlocked && (
+                <div className="absolute bottom-2 z-30 px-3 py-2 rounded-2xl bg-amber-500/95 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-xl shadow-amber-500/30 border border-amber-300">
+                  <span>⚠️ Path blocked!</span>
+                  <button
+                    onClick={handleUndo}
+                    className="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold cursor-pointer transition-colors"
+                  >
+                    Undo (U)
+                  </button>
+                  <button
+                    onClick={handleSmartNudge}
+                    className="px-2.5 py-1 rounded-xl bg-cyan-950 hover:bg-cyan-900 text-cyan-300 text-[11px] font-semibold cursor-pointer transition-colors"
+                  >
+                    Smart Unblock ✨
+                  </button>
+                </div>
+              )}
             </main>
 
-            {/* Bottom AdMob Banner */}
-            <footer className="w-full shrink-0 pb-2 z-20">
-              <AdMobBanner
-                bannerId={admobConfig.bannerId}
-                onOpenSettings={() => setIsAdMobSettingsOpen(true)}
-              />
-            </footer>
+            {/* Bottom AdMob Banner (Simulated on Web, Native AdView handles it in Android APK) */}
+            {!isNativeAndroid && (
+              <footer className="w-full shrink-0 pb-2 z-20">
+                <AdMobBanner
+                  bannerId={admobConfig.bannerId}
+                  onOpenSettings={() => setIsAdMobSettingsOpen(true)}
+                />
+              </footer>
+            )}
           </div>
         )}
 
